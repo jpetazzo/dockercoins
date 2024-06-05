@@ -1,0 +1,51 @@
+name: Automated Build
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  push:
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write
+
+
+    strategy:
+      matrix:
+        component: [ hasher, rng, webui, worker ]
+
+    steps:
+      - 
+        uses: actions/checkout@v3
+
+      -
+        name: Log into GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      -
+        uses: docker/setup-qemu-action@v3
+
+      -
+        uses: docker/setup-buildx-action@v3
+
+      -
+        name: hasher
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.component }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ghcr.io/jpetazzo/dockercoins/${{ matrix.component }}:v0.1
