@@ -5,9 +5,6 @@ on:
     branches:
       - main
 
-env:
-  DOCKER_BUILDKIT: 1
-
 jobs:
   push:
 
@@ -36,6 +33,13 @@ jobs:
           password: ${{ github.token }}
 
       -
+        name: Log into Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      -
         uses: docker/setup-qemu-action@v3
 
       -
@@ -48,4 +52,6 @@ jobs:
           context: ${{ matrix.component }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ghcr.io/jpetazzo/dockercoins/${{ matrix.component }}:v0.1
+          tags: |
+            ghcr.io/jpetazzo/dockercoins/${{ matrix.component }}:v0.1
+            dockercoins/${{ matrix.component }}:v0.1
